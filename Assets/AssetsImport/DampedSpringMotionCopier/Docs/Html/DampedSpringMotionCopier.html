@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+    <title>Physical Walk</title>
+  </head>
+  <body>
+
+
+<p>Ever needed to attach one game object to another non-rigidly? In a soft fashion, sort of via a spring. This free script should help you.</p>
+<p>The task of attaching one object to another in a Unity game via a spring is not uncommon. It's also not very hard. But most people do it in a straightforward fashion by simulating a real spring. Well, there is a better approach that has significant advantages over the simulation method. Namely, by using explicit formulas for a damped spring. A wikipedia article with the formulas is <a href="https://en.wikipedia.org/wiki/Harmonic_oscillator">here</a>.</p>
+<p>The advantages of using the direct formulas are:</p>
+<ul>
+<li>No need for a simulation.</li>
+<li>The relative position of the driven object can be obtained at any time without intermediary steps. The computational cost is fixed and small.</li>
+<li>The result is exact always, no simulation errors can creep in.</li>
+<li>There are no stability issues, no matter how wild the input parameters used.</li>
+</ul>
+<p>This approach is not widely used as it is tricky even to calculate positions with it, and much harder to calculate rotations. The factor-ordering problem for quaternions puts most programmers off. So people just use a simulation. But from now on you can just grab this free solution that just works and not worry about the maths.</p>
+<p> </p>
+<p>Example uses:</p>
+<ul>
+<li>Attaching a camera to a racing car with such a method may convey collisions more dramatically</li>
+<li>Attaching the skinning key points to a moving rider with this method will create a perception of moving clothing</li>
+<li>Rider can be attached to bike with this method.</li>
+<li>Objects held by force-fields.</li>
+</ul>
+<p>This free code is a part of a bigger animation/physics tool <a href="https://physicalwalk.joomla.com/">Physical Walk</a>.</p>
+<p> </p>
+<h3>How to use</h3>
+<ol>
+<li>Add a DampedSpringMotionCopier.cs script component to the object that you want to copy the motion onto.</li>
+<li>For positional and rotational parts specify the source objects to copy the motion from. These can be different - you can copy linear motion from one object and rotational motion from another. You can omit the source object for either the positional or rotational part altogether which means that the corresponding motion will not be changed.</li>
+<li>Adjust the parameters, most importantly <em>damping criticality</em> and <em>natural frequency</em>.</li>
+</ol>
+<h3> </h3>
+<p> </p>
+<h3>Script parameters</h3>
+<p><img src="images/DampedSpringMotionCopier_Inspector.png" alt="" /></p>
+<p><em><strong>Source object</strong></em> - the object from which you want to copy the motion onto this object.</p>
+<p><em><strong>Motion copying type</strong></em> - whether you want to copy the motion instantly, via a spring, or leave it alone.</p>
+<p><em><strong>Damping criticality</strong></em> - the parameter that dictates how quickly the copied motion dies down. Values from 0 to 1 correspond to an under-damped spring, 1 to a critically damped spring, and anything above to an over-damped spring. See the Wikipedia article above for in-depth explanation.</p>
+<p>An under-damped spring will oscillate. With a value of 0 it will oscillate forever without dying out. A value of 1 (critical damping) should copy the motion via the spring in the fastest possible fashion (for a given natural frequency). Some small oscillations can be expected if the source object is moving. With values over 1 the spring will be over-damped and the oscillations will be absent.</p>
+<p><em><strong>Natural frequency</strong></em> - this parameters tells how stiff the spring is. The higher the value the stiffer the spring will be and the quicker the target will match the motion of the source. The units of the parameter is inverse seconds. So if you want positions or orientations to match after roughly two seconds, try parameter values in the region of 0.5. Again, see the Wikipedia article for reference. For linear motion you can specify the value for all three axes independently.</p>
+<p><em><strong>Apply spring in moving reference frame</strong></em> - determines whether the spring is considered to be moving together with the source object or not. You likely want to have it checked, which is the default value. If the source object is moving with a constant speed the target object will eventually catch up only if the value is <em>true</em>.</p>
+<p><em><strong>Fix relative position at start</strong></em> - this allows you to specify the point towards which the spring pulls:</p>
+<p style="padding-left: 30px;"><strong><em>DONT_FIX_INITIAL_RELATIVE_POSITION</em></strong> - there will be no offset between the object centers.<br /><strong><em>IN_WORLD_FRAME</em></strong> - the spring will be trying to match the relative position of the target object that existed at the beginning (when Play Mode has started).<br /><strong><em>IN_SOURCE_LOCAL_FRAME</em></strong>  - the spring will be trying to return the target object to its relative position with respect to the source object expressed in the source object's reference frame. This sentence is bound to have too many nouns :). It might be easier just to see the effect of the parameter when the source object is rotated in-game.</p>
+<p style="padding-left: 30px;">For a rotational spring only the rotational offset in the local reference frame of the source object can be fixed to a non-zero value.</p>
+<p>Additionally, for a positional spring you can specify more advanced parameters such as the displacement scales and limits per each axis. The default values, which you will likely stick with, have no effect on the motion copying.</p>
+<p> </p>
+<h3>Notes on values</h3>
+<p>Setting <em>criticality</em> to anything higher than, say, 2 does not make much sense. You may think that high values will speed up settling down, but in reality this will lead to a longer matching time because the over-damping acts like a brake. If in addition to a high value of <em>criticality</em> you set a lower value of <em>natural frequency</em>, this will make the spring weak and over-damped, and it will not return the target object to the needed position at all.</p>
+<p> </p>
+<p> </p>
+<h3>Video tutorial</h3>
+<p> </p>
+<p><iframe src="https://www.youtube.com/embed/QiMZEW-oG8Y" width="840" height="472" frameborder="0" allowfullscreen=""></iframe></p>
+<p> </p>
+<p>Download directly <a href="https://drive.google.com/open?id=0B3ueYMXohkVuWnhpX3gxU3cxemc">7z</a> (extract to the folder <em>Assets</em> of your game), <a href="https://drive.google.com/open?id=0B3ueYMXohkVueGtRWjRvZlRIcnc">unitypackage</a> or from Unity Asset Store.</p>
+<p>All essential code is contained in the two files DampedSpringMotionCopier.cs and DampedSpringMotionCopier.Utils.cs, spanning one class. You can combine them into one cs file. The third file TooltipAttribute.cs is provided solely for tool-tips. You will be able to remove it too if a minimal interference with your project structure is necessary.</p>
+<p> </p>
+<p><a href="mailto:physicalwalk@gmail.com">physicalwalk@gmail.com</a></p>
+<p>Eugene Laptev</p>
+
+  
+  </body>
+</html>
